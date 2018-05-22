@@ -14,6 +14,10 @@ My Svelte repo for svelte components
       npm run dev
 ```
 
+## Let's keep learning Svelte
+
+[Bookmarked page](https://svelte.technology/guide#default-data)
+
 ___
 ## TODO
  - Try [SAPPER](https://sapper.svelte.technology/) for PWA
