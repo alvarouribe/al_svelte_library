@@ -1,0 +1,199 @@
+<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
+<style>
+	#visas-disponibles {
+		width: 96%;
+		padding: 20px;
+		margin: auto;
+	}
+	#visas-disponibles ul {
+		display: flex;      
+		flex-direction: row;
+		flex-wrap: wrap;
+		/* or in one line-> flex-flow: row wrap;*/
+		justify-content: center;
+		align-items: center;
+	}
+	#visas-disponibles ul li { 
+		width: 405px;
+		height: 330px;
+		/* display: inline-block; */
+		list-style-type: none;
+		/* overflow: hidden; */
+	}
+	#visas-disponibles ul li a { 
+		cursor: pointer;
+	}
+	h1, h2, h3 {
+		font-family: lobster;
+	}
+	h2 {
+		padding: 10px;
+		text-align:  center;
+		font-size:  150%;
+		margin-bottom: 15px;
+	}
+	h3 {
+		font-family: lobster;
+		vertical-align: middle;
+		display: table-cell;
+		color: white;
+		font-size: 175%;
+		position: absolute;
+		margin-top: 220px;
+		margin-left: 15px;
+		text-transform: capitalize;
+		text-shadow: 1px 1px 2px #000000;
+	}
+	.cotizador {
+		padding:20px;
+		box-sizing: border-box;
+		width: 100%;
+		height: 210px;
+		background: url('imagenes/alianzadelpacifico.jpg');
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.cotizador .col {
+		padding: 20px;
+		width: 20%;
+		display: inline-block;
+	}
+	.cotizador select, .cotizador button {
+		width: 250px;
+		height: 40px;
+		margin: 10px 20px;
+		color: #EB5F2E;
+		background-color: #000000;
+		-webkit-appearance: none;
+		-webkit-border-radius: 0px;
+		text-transform: capitalize;
+	}
+	.cotizador select {
+		padding-left: 5px;
+	}
+	@media screen and (max-width:800px) {
+		.cotizador .col, .cotizador .col select {
+			width:100%;
+			padding: 0;
+			padding-left: 5px;
+		}
+		.cotizador {
+			height: 260px;
+		}
+	}
+	button {
+		display: block;
+		margin: auto;
+	}
+	/* ul li h3 { 
+		position: relative;
+		top:10px;
+	} */
+
+	#debug {
+		display: none;
+		position: absolute;
+		bottom: 10px;
+		left: 0;
+		width: 300px;
+		border: 1px solid black;
+	}
+</style>
+<div class="cotizador">
+	<select name="pais" id="pais" bind:value=paisNatal>
+		<option value="null">País natal</option>
+		{#each reglas as regla}
+			<option value="{regla.aplicante}">{regla.aplicante}</option>
+		{/each}
+	</select>
+	
+	<select name="edad" id="edad" bind:value=edad>
+		<option value="null">Seleccione su edad</option>
+		<option value="18">18</option>
+		<option value="19">19</option>
+		<option value="20">20</option>
+		<option value="21">21</option>
+		<option value="22">22</option>
+		<option value="23">23</option>
+		<option value="24">24</option>
+		<option value="25">25</option>
+		<option value="26">26</option>
+		<option value="27">27</option>
+		<option value="28">28</option>
+		<option value="29">29</option>
+		<option value="30">30</option>
+		<option value="31">31</option>
+		<option value="32">32</option>
+		<option value="33">33</option>
+		<option value="34">34</option>
+		<option value="35">35</option>
+	</select>
+
+	<select name="aplicaDesdeExterior" id="aplicaDesdeExterior" bind:value=aplicaDesdeExterior>
+		<option value="null">Aplicas desde el exterior ?</option>
+		<option value="si">Si</option>
+		<option value="no">No</option>
+	</select>
+</div>
+
+<!-- paisNatal: {paisNatal} <br>
+edad: {edad} <br>
+aplicaDesdeExterior: {aplicaDesdeExterior}  -->
+
+<section id="visas-disponibles">
+	<h2>Compruebe su visa</h2>
+	<ul id="visas-list">
+		{#each reglas as regla}
+			{#if (paisNatal && regla.aplicante.toLowerCase() == paisNatal.toLowerCase()) }
+				{#each regla.visas as visa}
+					{#if ( (edad >= visa.min) && (edad <= visa.max) ) }
+						{#if ( aplicaDesdeExterior === 'no' || ( aplicaDesdeExterior === 'si' && (visa['en-pais-de-origen'].toLowerCase() === 'si')) ) }
+							<li>
+								<a href="./visas/{str2slug(visa.pais)}.pdf" target="_blank">
+									<h3>{ visa.pais }</h3>
+									<img src="./imagenes/{str2slug(visa.pais)}.jpg" alt="{visa.pais}">
+								</a>
+							</li>
+						{/if}
+					{/if}
+				{/each}
+			{/if}
+		{/each}
+	</ul>
+</section>
+
+<script>
+	export default {
+		// data() { //to set extra data
+		// 	return {
+		// 		extra: true // <-- this can be access from the view
+		// 	}
+		// },
+		// oncreate() {
+		// 	console.log('this.options', this.options);
+		// },
+		helpers: {
+			str2slug(str) {
+				/* str2slug(str): Remplaza espacios y modifica acentos y simbolos para usarla en Nombre de imagen y archivo pdf ej: corea del sur ==> coreadelsur */
+				var rep = ''; //remplaza espacios por esto.
+				str = str.toLowerCase().replace(/\s+/g, rep) // replace whitespace
+
+				// remove accents, swap ñ for n, etc
+				var from = "àáäâèéëêìíïîòóöôùúüûñç";
+				var to   = "aaaaeeeeiiiioooouuuunc";
+				for (var i=0, l=from.length ; i<l ; i++) {
+					str = str.replace(
+									new RegExp(from.charAt(i), 'g'),
+									to.charAt(i)
+								);
+				}
+				// remove invalid chars
+				str = str.replace(new RegExp('[^a-z0-9'+rep+']',"g"), '')
+							.replace(/-+/g, rep); // collapse dashes;
+				return str;
+			}
+		}
+	};
+</script>

@@ -1,0 +1,18 @@
+<h1>THIS IS A WIDGET</h1>
+
+<button on:click="say('hello')">say hello!</button>
+
+ans: {ans}
+
+<script>
+  export default {
+    data: {
+      ans: 'YO'
+    },
+    methods: {
+      say(message) {
+        alert(message); // again, please don't do this
+      }
+    }
+  };
+</script>

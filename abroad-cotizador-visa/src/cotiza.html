@@ -1,0 +1,284 @@
+<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
+
+<div class="cotizador">
+	<!-- <label for="pais">País</label> -->
+	<select name="pais" id="pais">
+		<option value="null">País natal</option>
+		<option value="chile">Chile</option>
+		<option value="argentina">Argentina</option>
+		<option value="españa">España</option>
+		<option value="colombia">Colombia</option>
+		<option value="méxico">México</option>
+		<option value="perú">Perú</option>
+		<option value="uruguay">Uruguay</option>
+	</select>
+		
+	<!-- <label for="edad">Edad</label> -->
+	<select name="edad" id="edad">
+		<option value="null">Seleccione su edad</option>
+		<option value="18">18</option>
+		<option value="19">19</option>
+		<option value="20">20</option>
+		<option value="21">21</option>
+		<option value="22">22</option>
+		<option value="23">23</option>
+		<option value="24">24</option>
+		<option value="25">25</option>
+		<option value="26">26</option>
+		<option value="27">27</option>
+		<option value="28">28</option>
+		<option value="29">29</option>
+		<option value="30">30</option>
+		<option value="31">31</option>
+		<option value="32">32</option>
+		<option value="33">33</option>
+		<option value="34">34</option>
+		<option value="35">35</option>
+	</select>
+
+	<!-- <label for="aplicaDesdeExterior">Estas en tu país de origen</label> -->
+	<select name="aplicaDesdeExterior" id="aplicaDesdeExterior">
+		<option value="null">Aplicas desde el exterior ?</option>
+		<option value="si">Si</option>
+		<option value="no">No</option>
+	</select>
+
+	<button onclick="comprobarVisas()">Comprobar</button>
+</div>
+<br>
+<section id="visas-disponibles">
+	<h2>Compruebe su visa</h2>
+	<ul id="visas-list"></ul>
+</section>
+
+<script type="text/javascript" src="data/reglas.js"></script>
+<script>
+	export default {
+		methods: {
+			comprobarVisas() {
+				console.clear();
+				var sectionVisasDisp = document.getElementById('visas-disponibles')
+				var initialH2 = sectionVisasDisp.getElementsByTagName('h2');
+				if (initialH2[0]) { initialH2[0].remove(); }
+
+				//Limpia Visas
+				var ulVisas = document.getElementById("visas-list");
+				ulVisas.innerHTML = '';
+
+				//FORMULARIO
+				var paisNatal = document.getElementById('pais').value.toLowerCase().trim();
+				var edad = document.getElementById('edad').value;
+				var aplicaDesdeExterior = document.getElementById('aplicaDesdeExterior').value;
+				//FORMULARIO
+				
+				//DEBUG
+				// var debug = document.getElementById('debug');
+				// var debugDiv = document.getElementById('debugDiv');
+				// debugDiv.innerHTML = "";
+				//DEBUG
+
+				//LOOP para filtrar pais 
+				//TODO: ESTE LO PODRIAMOS MODIFICAR PARA SOLO PONER reglas[key][paisNatal] creo...
+				for (var key in reglasCotizador) {
+					if (reglasCotizador.hasOwnProperty(key)) {
+
+						// Una vez encontrada las reglasCotizador del pais seleccionado filtramos
+						if (reglasCotizador[key].aplicante.toLowerCase() === paisNatal) {
+
+							//DEBUG DIV
+							// debugDiv.innerHTML += "paisNatal: " + paisNatal + "<br>";
+							// debugDiv.innerHTML += "edad: " + edad.toLowerCase() + "<br>";
+							// debugDiv.innerHTML += "en pais de origen: " + aplicaDesdeExterior.toLowerCase() + "<br>";
+							//DEBUG DIV
+							
+							var opcionesDeVisas = reglasCotizador[key].visas;
+							//Loop
+							for (let i = 0; i < opcionesDeVisas.length; i++) {
+								const VISA = opcionesDeVisas[i];
+								var aprobada = false;
+
+								if (edad >= VISA['min'] && edad <= VISA['max']) {
+									
+									console.log('soy '+reglasCotizador[key].aplicante+' aplico desde el exterior:'+ aplicaDesdeExterior);
+
+									if ( aplicaDesdeExterior === 'no' ) { //ESTO ESTÁ BIEN NO CAMBIAR
+										aprobada = true;
+									}
+
+									if ( aplicaDesdeExterior === 'si' && (VISA['en-pais-de-origen'].toLowerCase() === 'si') ) {
+										aprobada = true;
+									}
+
+									if (aprobada) {
+										console.log('visa ['+VISA['pais']+']aprobada');
+										// Creamos la visa, con su imagen, titulo y link pdf
+										
+										var nombrePais = VISA['pais'];
+										var etiqueta = VISA['pais'].split(" ").join(""); 
+										etiqueta = str2slug(etiqueta);
+
+										// Crea <li> y <a href target>
+										var li = document.createElement("li");
+										var link = document.createElement('a');
+										link.setAttribute('href','visas/' + etiqueta + '.pdf');
+										link.setAttribute('target','_blank');
+
+										// Crea <h3> con Nombre del pais desde las reglas
+										var h3 =  document.createElement('h3');
+										var txtnodeh3 = document.createTextNode(nombrePais);
+										h3.appendChild(txtnodeh3);
+
+										// Crea <img>
+										var img = document.createElement('img');
+										img.setAttribute('src', 'imagenes/'+ etiqueta+'.jpg');
+										img.setAttribute('alt', etiqueta);
+
+										// Agregamos a ul
+										link.appendChild(h3);
+										link.appendChild(img);
+										li.appendChild(link);
+										ulVisas.appendChild(li);
+									}
+								}              
+							}
+						}
+					}
+				}
+				
+				var visasDisponibles = ulVisas.getElementsByTagName('li');
+				var numOfVisasDisponibles = visasDisponibles.length;
+				var h2 = document.createElement('h2');
+				var txtnodeh2 = document.createTextNode(numOfVisasDisponibles > 0 ? 'Visas Disponibles ('+numOfVisasDisponibles+')':'No hay visas disponibles');
+				h2.appendChild(txtnodeh2);
+				sectionVisasDisp.prepend(h2);
+			},
+			str2slug(str) {
+				/* str2slug(str)
+					Elimina espacios y modifica acentos y simbolos para usarla en 
+					Nombre de imagen y archivo pdf 
+					ej: corea del sur ==> coreadelsur
+				*/
+				var rep = '_';
+				str = str.toLowerCase()
+				.replace(/\s+/g, rep) // replace whitespace
+
+				// remove accents, swap ñ for n, etc
+				var from = "àáäâèéëêìíïîòóöôùúüûñç";
+				var to   = "aaaaeeeeiiiioooouuuunc";
+				for (var i=0, l=from.length ; i<l ; i++) {
+						str = str.replace(
+											new RegExp(from.charAt(i), 'g'),
+											to.charAt(i)
+									);
+				}
+							// remove invalid chars
+				str = str.replace(new RegExp('[^a-z0-9'+rep+']',"g"), '')
+							.replace(/-+/g, rep); // collapse dashes;
+
+				return str;
+			}
+		}
+	};
+</script>
+
+<style>
+ 	#visas-disponibles {
+		width: 96%;
+		padding: 20px;
+		margin: auto;
+	}
+	#visas-disponibles ul {
+		display: flex;      
+		flex-direction: row;
+		flex-wrap: wrap;
+		/* or in one line-> flex-flow: row wrap;*/
+		justify-content: center;
+		align-items: center;
+	}
+	#visas-disponibles ul li { 
+		width: 405px;
+		height: 330px;
+		/* display: inline-block; */
+		list-style-type: none;
+		/* overflow: hidden; */
+	}
+	#visas-disponibles ul li a { 
+		cursor: pointer;
+	}
+	h1, h2, h3 {
+		font-family: lobster;
+	}
+	h2 {
+		padding: 10px;
+		text-align:  center;
+		font-size:  150%;
+		margin-bottom: 15px;
+	}
+	h3 {
+		font-family: lobster;
+		vertical-align: middle;
+		display: table-cell;
+		color: white;
+		font-size: 175%;
+		position: absolute;
+		margin-top: 220px;
+		margin-left: 15px;
+		text-transform: capitalize;
+		text-shadow: 1px 1px 2px #000000;
+	}
+	.cotizador {
+		padding:20px;
+		box-sizing: border-box;
+		width: 100%;
+		height: 210px;
+		background: url('imagenes/alianzadelpacifico.jpg');
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.cotizador .col {
+		padding: 20px;
+		width: 20%;
+		display: inline-block;
+	}
+	.cotizador select, .cotizador button {
+		width: 250px;
+		height: 40px;
+		margin: 10px 20px;
+		color: #EB5F2E;
+		background-color: #000000;
+		-webkit-appearance: none;
+		-webkit-border-radius: 0px;
+	}
+	.cotizador select {
+		padding-left: 5px;
+	}
+	@media screen and (max-width:800px) {
+		.cotizador .col, .cotizador .col select {
+			width:100%;
+			padding: 0;
+			padding-left: 5px;
+		}
+		.cotizador {
+			height: 260px;
+		}
+	}
+	button {
+		display: block;
+		margin: auto;
+	}
+	/* ul li h3 { 
+		position: relative;
+		top:10px;
+	} */
+
+	#debug {
+		display: none;
+		position: absolute;
+		bottom: 10px;
+		left: 0;
+		width: 300px;
+		border: 1px solid black;
+	}
+</style>
